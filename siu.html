@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargar Audio de YouTube</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <input type="text" id="urlInput" placeholder="Ingrese el enlace de YouTube">
+    <button onclick="descargarAudio()">Descargar Audio</button>
+
+    <script>
+        function descargarAudio() {
+            var url = $('#urlInput').val().trim();
+
+            if (!url) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Por favor, ingrese un enlace de YouTube.'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Descargando...',
+                html: 'La descarga comenzará en breve.',
+                timer: 2000,
+                timerProgressBar: true,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Realizar la solicitud para obtener el enlace de descarga del audio
+            fetch('/descargar_audio?url=' + encodeURIComponent(url))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Hubo un problema al descargar el audio.');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Crear un objeto URL para el blob
+                    var audioUrl = URL.createObjectURL(blob);
+
+                    // Crear un enlace de descarga y hacer clic en él
+                    var a = document.createElement('a');
+                    a.href = audioUrl;
+                    a.download = 'audio.mp3';
+                    document.body.appendChild(a);
+                    a.click();
+
+                    // Limpiar el objeto URL
+                    URL.revokeObjectURL(audioUrl);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Hubo un problema al descargar el audio.'
+                    });
+                });
+        }
+    </script>
+</body>
+</html>
