@@ -3,10 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="Shortcut Icon" href="{{url_for('static', filename='img/icono music.ico')}}">
     <title>Download VA</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+      #conta_pri {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+      }
+      form {
+          margin-bottom: 20px;
+      }
+  </style>
   </head>
   <body>
+    <div id="conta_pri">
     <div id="step1">
       <h2>Paso 1: Ingrese la URL de YouTube</h2>
       <form id="urlForm">
@@ -31,6 +45,7 @@
         <label for="fileName">Nombre del archivo:</label>
         <input type="text" id="fileName" name="fileName" required /><br /><br />
         <button
+          id="botonDescargar"
           type="button"
           onclick="descargarContenido()"
           style="cursor: pointer"
@@ -39,7 +54,7 @@
         </button>
       </form>
     </div>
-
+  </div>
     <script>
       function siguientePaso() {
         var url = document.getElementById("url").value.trim();
@@ -67,6 +82,10 @@
           showConfirmButton: false,
           timer: 3000,
         });
+
+        // Deshabilitar el botón de descarga
+        var botonDescargar = document.getElementById("botonDescargar");
+        botonDescargar.disabled = true;
 
         var xhr = new XMLHttpRequest();
         var endpoint =
@@ -101,6 +120,8 @@
               text: "Hubo un problema al descargar el archivo.",
             });
           }
+          // Habilitar el botón de descarga después de que se completa la descarga
+          botonDescargar.disabled = false;
         };
         xhr.send();
       }
