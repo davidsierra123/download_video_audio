@@ -1,91 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Descargar Audio de YouTube</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Download VA</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-<body>
-    <form method="POST" id="downloadForm">
+  </head>
+  <body>
+    <div id="step1">
+      <h2>Paso 1: Ingrese la URL de YouTube</h2>
+      <form id="urlForm">
         <label for="url">URL:</label>
-        <input type="text" id="url" name="url" autofocus required>
-        <button type="submit">Siguiente</button>
-    </form>
+        <input type="text" id="url" name="url" autofocus required /><br /><br />
 
-    <div id="fileNameForm" style="display: none;">
-        <form id="fileNameInput">
-            <label for="fileName">Nombre del archivo:</label>
-            <input type="text" id="fileName" name="fileName" required>
-            <button type="submit">Descargar</button>
-        </form>
+        <label for="type">Tipo:</label>
+        <select id="type" name="type" style="cursor: pointer">
+          <option value="audio">Audio</option>
+          <option value="video">Video</option></select
+        ><br /><br />
+
+        <button type="button" onclick="siguientePaso()" style="cursor: pointer">
+          Siguiente
+        </button>
+      </form>
+    </div>
+
+    <div id="step2" style="display: none">
+      <h2>Paso 2: Seleccione el nombre del archivo</h2>
+      <form id="fileNameForm" style="display: none">
+        <label for="fileName">Nombre del archivo:</label>
+        <input type="text" id="fileName" name="fileName" required /><br /><br />
+        <button
+          type="button"
+          onclick="descargarContenido()"
+          style="cursor: pointer"
+        >
+          Descargar
+        </button>
+      </form>
     </div>
 
     <script>
-        document.getElementById('downloadForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            validarURL();
-        });
-
-        function validarURL() {
-            var url = document.getElementById('url').value.trim();
-
-            if (!url) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Por favor, ingrese una URL válida.'
-                });
-                return false;
-            }
-
-            // Verificar si la URL es válida (puedes agregar tu propia lógica de validación aquí)
-
-            // Si la URL es válida, mostrar el formulario para ingresar el nombre del archivo
-            document.getElementById('downloadForm').style.display = 'none';
-            document.getElementById('fileNameForm').style.display = 'block';
-
-            return false;
+      function siguientePaso() {
+        var url = document.getElementById("url").value.trim();
+        if (url) {
+          document.getElementById("step1").style.display = "none";
+          document.getElementById("step2").style.display = "block";
+          document.getElementById("fileNameForm").style.display = "block";
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Por favor, ingrese una URL válida.",
+          });
         }
+      }
 
-        document.getElementById('fileNameInput').addEventListener('submit', function(event) {
-            event.preventDefault();
-            descargarAudio();
+      function descargarContenido() {
+        var url = document.getElementById("url").value.trim();
+        var fileName = document.getElementById("fileName").value.trim();
+        var type = document.getElementById("type").value.trim();
+        Swal.fire({
+          icon: "info",
+          title: "Iniciando descarga...",
+          text: "La descarga se está iniciando.",
+          showConfirmButton: false,
+          timer: 3000,
         });
 
-        function descargarAudio() {
-            var url = document.getElementById('url').value.trim();
-            var fileName = document.getElementById('fileName').value.trim();
+        var xhr = new XMLHttpRequest();
+        var endpoint =
+          type === "audio" ? "/descargar_audio" : "/descargar_video";
+        xhr.open(
+          "GET",
+          `${endpoint}?url=${encodeURIComponent(
+            url
+          )}&fileName=${encodeURIComponent(fileName)}`
+        );
+        xhr.responseType = "blob";
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            var a = document.createElement("a");
+            a.href = window.URL.createObjectURL(xhr.response);
+            a.download = fileName + (type === "audio" ? ".mp3" : ".mp4");
+            document.body.appendChild(a);
+            a.click();
 
-            // Construir el enlace de descarga directa con el nombre de archivo especificado
-            var downloadLink = '/descargar_audio?url=' + encodeURIComponent(url) + '&fileName=' + encodeURIComponent(fileName);
-            
-            // Mostrar alerta cuando se inicie la descarga
             Swal.fire({
-                icon: 'info',
-                title: 'Iniciando descarga...',
-                text: 'La descarga se está iniciando.'
-            });
-
-            // Simular un clic en el enlace de descarga
-            var anchor = document.createElement('a');
-            anchor.href = downloadLink;
-            anchor.download = fileName + '.mp3'; // Asegúrate de agregar la extensión del archivo
-
-            anchor.click();
-
-            // Mostrar alerta cuando la descarga se complete correctamente
-            Swal.fire({
-                icon: 'success',
-                title: 'Descarga completada',
-                text: 'La descarga se ha completado con éxito.'
+              icon: "success",
+              title: "Descarga completada.",
+              text: "Gracias por tu descarga y usar esta pagina",
             }).then((result) => {
-                // Refrescar la página después de la descarga
-                window.location.reload();
+              // Refrescar la página después de la descarga
+              window.location.reload();
             });
-
-            return false;
-        }
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Hubo un problema al descargar el archivo.",
+            });
+          }
+        };
+        xhr.send();
+      }
     </script>
-</body>
+  </body>
 </html>
